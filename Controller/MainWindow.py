@@ -19,7 +19,7 @@ class MainWindow(QMainWindow, mainapp_ui.Ui_MainWindow):
             self.form_widget = None
             self.frame_layout = QtWidgets.QVBoxLayout(self.message_frame)
             self.message_frame.setContentsMargins(0, 0, 0, 0)
-            self.thread = YowsupThread(self.credentials['phone_number'], self.credentials['password'])
+            self.thread = YowsupThread(self.credentials['phone_number'], self.credentials['password'], debug=False)
             self.thread.interface.success_connection_signal.connect(self.on_success)
             self.thread.interface.message_received_signal.connect(self.on_success)
             self.contact_table.clicked.connect(self.render_page)

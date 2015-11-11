@@ -1,12 +1,13 @@
 __author__ = 'Raj'
 
 from DbServices.Helper import Helper
-import threading
+import threading, os
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
 from yowsup.layers.protocol_groups.protocolentities import *
 from yowsup.layers.protocol_messages.protocolentities import *
+from yowsup.layers.protocol_profiles.protocolentities import *
 
 
 class Interfacer(QThread, YowInterfaceLayer):
@@ -69,17 +70,31 @@ class Interfacer(QThread, YowInterfaceLayer):
         print("Message from %s" % (entity.getFrom(False)))
 
     def get_group_info(self, group_jid):
-        self.lock.acquire()
+        def on_success(success_entity, original_entity):
+            print(success_entity)
+
+        def on_error(error_entity, original_entity):
+            print(error_entity)
+            print(original_entity)
         entity = InfoGroupsIqProtocolEntity(group_jid)
-        self.toLower(entity)
-        self.lock.release()
+        success = lambda success_entity, original_entity: on_success(success_entity, original_entity)
+        error = lambda error_entity, original_entity: on_error(error_entity, original_entity)
+        self._sendIq(entity, success, error)
+
+    def contact_picture(self, jid):
+        entity = GetPictureIqProtocolEntity(jid, preview=True)
+        self._sendIq(entity, self.contact_image_result)
+
+    def contact_image_result(self, success_entity, original_entity):
+        success_entity.writeToFile('../tmp/images/test.jpg')
+        pass
 
     def groups_list(self):
         def on_success(success_entity, original_entity):
-            print(original_entity)
             for group in success_entity.getGroups():
-                self.services.update_contact_id(group.getId()+"@g.us", group.getSubject()),
+                self.services.update_contact_id(group.getId()+"@g.us", group.getSubject())
             self.success_connection_signal.emit()
+            self.contact_picture('919597584357@s.whatsapp.net')
 
         def on_error(error_entity, original_entity):
             print(error_entity)
@@ -107,6 +122,7 @@ class Interfacer(QThread, YowInterfaceLayer):
     # -------------------------- Callback functions for each functions -------------------------------------------- #
     @ProtocolEntityCallback("success")
     def on_success(self, entity):
+        print("Success Connected")
         self.groups_list()
 
     @ProtocolEntityCallback("ack")

@@ -20,6 +20,7 @@ from yowsup.layers.logger import YowLoggerLayer
 from yowsup.layers.protocol_iq import YowIqProtocolLayer
 from yowsup.layers.protocol_calls import YowCallsProtocolLayer
 from yowsup.layers.axolotl import YowAxolotlLayer
+from yowsup.layers.protocol_profiles import YowProfilesProtocolLayer
 
 from YowsupHelper.Interfacer import Interfacer
 
@@ -41,7 +42,8 @@ class YowsupThread(QThread):
                 YowMediaProtocolLayer,
                 YowIqProtocolLayer,
                 YowCallsProtocolLayer,
-                YowGroupsProtocolLayer
+                YowGroupsProtocolLayer,
+                YowProfilesProtocolLayer
             ),
             YowAxolotlLayer,
             YowLoggerLayer,

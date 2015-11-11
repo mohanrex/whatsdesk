@@ -19,7 +19,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.contact_frame = QtWidgets.QFrame(self.central_widget)
-        self.contact_frame.setMinimumSize(QtCore.QSize(0, 0))
+        self.contact_frame.setMinimumSize(QtCore.QSize(200, 0))
         self.contact_frame.setMaximumSize(QtCore.QSize(250, 16777215))
         self.contact_frame.setAutoFillBackground(False)
         self.contact_frame.setStyleSheet("QFrame#menuFrame {\n"

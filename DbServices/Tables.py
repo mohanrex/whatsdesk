@@ -31,3 +31,16 @@ class Contact(Base):
     status = Column(String(2))
     is_group = Column(String(2))
     last_seen = Column(String(255))
+
+
+class Profile(Base):
+    __tablename__ = 'profile'
+    id = Column(Integer, primary_key=True)
+    jid = Column(String(255))
+    phone_number = Column(String(255))
+    country_code = Column(String(255))
+    first_name = Column(String(255))
+    last_name = Column(String(255))
+    status_message = Column(String(255))
+    password = Column(String(255))
+    status = Column(String(2))

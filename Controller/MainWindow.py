@@ -12,29 +12,34 @@ from YowsupHelper.YowsupThread import YowsupThread
 class MainWindow(QMainWindow, mainapp_ui.Ui_MainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
-        self.setupUi(self)
         self.db = Helper()
-        self.form_widget = None
-        self.frame_layout = QtWidgets.QVBoxLayout(self.message_frame)
-        self.message_frame.setContentsMargins(0, 0, 0, 0)
-        self.thread = YowsupThread()
-        self.thread.interface.success_connection_signal.connect(self.on_success)
-        self.thread.interface.message_received_signal.connect(self.on_success)
-        self.contact_table.clicked.connect(self.render_page)
-        self.update_contact_table(True)
-        self.thread.render()
+        self.credentials = self.db.get_credentials()
+        self.setupUi(self)
+        if self.credentials:
+            self.form_widget = None
+            self.frame_layout = QtWidgets.QVBoxLayout(self.message_frame)
+            self.message_frame.setContentsMargins(0, 0, 0, 0)
+            self.thread = YowsupThread(self.credentials['phone_number'], self.credentials['password'])
+            self.thread.interface.success_connection_signal.connect(self.on_success)
+            self.thread.interface.message_received_signal.connect(self.on_success)
+            self.contact_table.clicked.connect(self.render_page)
+            self.thread.render()
+        else:
+            print("You need to provide authentication credentials")
 
     def render_page(self, index):
         row = index.row()
         self.form_widget = Messager(index.sibling(row, 1).data(), self.thread)
+        self.form_widget.message_received_signal.connect(self.on_success)
         for i in reversed(range(self.frame_layout.count())):
             self.frame_layout.itemAt(i).widget().setParent(None)
         self.frame_layout.addWidget(self.form_widget)
         self.frame_layout.setContentsMargins(0, 0, 0, 0)
         self.message_frame.setLayout(self.frame_layout)
+        self.update_contact_table()
 
     def on_success(self):
-        self.update_contact_table()
+        self.update_contact_table(True)
         pass
 
     def update_contact_table(self, init=False):

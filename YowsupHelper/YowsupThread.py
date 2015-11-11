@@ -25,7 +25,7 @@ from YowsupHelper.Interfacer import Interfacer
 
 
 class YowsupThread(QThread):
-    def __init__(self, parent=None, debug=False):
+    def __init__(self, phone, password, parent=None, debug=False):
         QThread.__init__(self, parent)
         self.exiting = False
         self.interface = Interfacer()
@@ -51,6 +51,7 @@ class YowsupThread(QThread):
             YowNetworkLayer
         )
         self.stack = YowStack(layers)
+        self.stack.setCredentials([phone, password])
 
     def __del__(self):
         print("Thread Deleted")

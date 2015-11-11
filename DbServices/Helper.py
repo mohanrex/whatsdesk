@@ -8,9 +8,13 @@ from DbServices.Base import Base
 
 class Helper:
     def __init__(self):
+        """
+        Initialization
+        """
         self._db_base = Base()
         self.engine = self._db_base.init(clear=False)
 
+    # -------------------------- Message db operation -------------------------------------------- #
     def add_message(self, values):
         field_name = [
             'message_id',
@@ -28,6 +32,28 @@ class Helper:
         fields = dict(zip(field_name, values))
         self.add_query('Message', fields)
 
+    def get_all_messages(self, current_id):
+        sql = "select * from message left join contact on contact.id = message.participant_id where message.from_id = "+current_id
+        count_sql = "select count(id) from message where from_id = "+current_id
+        records = self.engine.execute(sql)
+        count = self.engine.execute(count_sql).scalar()
+        return {'records': records, 'count': count}
+
+    def set_read(self, current_id):
+        sql = "update message set status = 20 where from_id = "+current_id
+        self.engine.execute(sql)
+
+    # -------------------------- Profile db operation -------------------------------------------- #
+    def get_credentials(self):
+        sess = self._db_base.session()
+        record = sess.query(Profile).first()
+        sess.close()
+        if record:
+            return {'phone_number': str(record.country_code)+str(record.phone_number), 'password': record.password}
+        else:
+            return None
+
+    # -------------------------- Contact db operation -------------------------------------------- #
     def get_jid_of_id(self, idx):
         sess = self._db_base.session()
         try:
@@ -95,7 +121,7 @@ class Helper:
     def get_all_contact(self):
         sql = "select contact.id, contact.name, " \
               "(select count(message.id) from message " \
-              "where message.from_id = contact.id) from contact " \
+              "where message.from_id = contact.id and message.status = 10) from contact " \
               "left join message as msg on msg.from_id = contact.id " \
               "group by contact.id order by msg.timestamp desc"
         count_sql = "select count(id) from contact"
@@ -116,6 +142,7 @@ class Helper:
         fields = dict(zip(field_name, values))
         self.add_query('Contact', fields)
 
+    # -------------------------- Base db operation -------------------------------------------- #
     def add_query(self, model, values):
         sess = self._db_base.session()
         model = globals()[model]

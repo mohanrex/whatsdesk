@@ -40,7 +40,7 @@ QGraphicsView {background-color: rgba(255, 255, 255, 0);border:0px;}</string>
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QLabel" name="status_label">
+    <widget class="QLabel" name="status__msg_label">
      <property name="font">
       <font>
        <family>Corbel</family>
@@ -55,35 +55,12 @@ QGraphicsView {background-color: rgba(255, 255, 255, 0);border:0px;}</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="0" rowspan="2">
-    <widget class="QGraphicsView" name="dp_image_view">
-     <property name="maximumSize">
-      <size>
-       <width>50</width>
-       <height>50</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2">
-    <widget class="QGraphicsView" name="status_image_view">
-     <property name="maximumSize">
-      <size>
-       <width>25</width>
-       <height>25</height>
-      </size>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="2">
     <widget class="QLabel" name="new_msg_label">
      <property name="maximumSize">
       <size>
-       <width>50</width>
-       <height>50</height>
+       <width>25</width>
+       <height>25</height>
       </size>
      </property>
      <property name="font">
@@ -97,6 +74,32 @@ QGraphicsView {background-color: rgba(255, 255, 255, 0);border:0px;}</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QLabel" name="available_label">
+     <property name="maximumSize">
+      <size>
+       <width>25</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" rowspan="2">
+    <widget class="QLabel" name="image_label">
+     <property name="maximumSize">
+      <size>
+       <width>50</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="text">
+      <string/>
      </property>
     </widget>
    </item>

@@ -67,6 +67,24 @@ class Helper:
             sess.close()
             return record.jid
 
+    def updatePresence(self, jid, available=None, last=None):
+        sess = self._db_base.session()
+        try:
+            record = sess.query(Contact).filter_by(jid=jid).one()
+            record.is_online = "20" if available is None else "10"
+            record.last_seen = record.last_seen if last is None else last
+            sess.commit()
+            sess.close()
+        except NoResultFound:
+            return
+        except MultipleResultsFound:
+            record = sess.query(Contact).filter_by(jid=jid).first()
+            record.is_online = "20" if available is None else "10"
+            record.last_seen = record.last_seen if last is None else last
+            sess.commit()
+            sess.close()
+            return
+
     def get_contact_id(self, jid, notify, is_group=0):
         sess = self._db_base.session()
         if jid:
@@ -83,6 +101,7 @@ class Helper:
                     "",
                     "",
                     is_group,
+                    10,
                     ""
                 ])
                 return self.get_contact_id(jid, notify)
@@ -110,6 +129,7 @@ class Helper:
                     "",
                     "",
                     1,
+                    10,
                     ""
                 ])
                 return
@@ -118,10 +138,33 @@ class Helper:
         else:
             return
 
+    def check_contact_id(self, jid):
+        sess = self._db_base.session()
+        if jid:
+            try:
+                record = sess.query(Contact).filter_by(jid=jid).one()
+                sess.close()
+                return True
+            except NoResultFound:
+                sess.close()
+                return False
+            except MultipleResultsFound:
+                record = sess.query(Contact).filter_by(jid=jid).first()
+                sess.close()
+                return True
+        else:
+            return False
+
+    def get_contact_group(self, group=False):
+        sql = "select id, jid from contact where is_group = 0"
+        records = self.engine.execute(sql)
+        return records
+
     def get_all_contact(self):
         sql = "select contact.id, contact.name, " \
               "(select count(message.id) from message " \
-              "where message.from_id = contact.id and message.status = 10) from contact " \
+              "where message.from_id = contact.id and message.status = 10), " \
+              "contact.status_message, contact.is_group, contact.is_online from contact " \
               "left join message as msg on msg.from_id = contact.id " \
               "group by contact.id order by msg.timestamp desc"
         count_sql = "select count(id) from contact"
@@ -137,6 +180,7 @@ class Helper:
             'status_message',
             'status',
             'is_group',
+            'is_online',
             'lastSeen'
         ]
         fields = dict(zip(field_name, values))

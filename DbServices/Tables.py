@@ -30,6 +30,7 @@ class Contact(Base):
     status_message = Column(String(255))
     status = Column(String(2))
     is_group = Column(String(2))
+    is_online = Column(String(2))
     last_seen = Column(String(255))
 
 

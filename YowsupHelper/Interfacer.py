@@ -8,6 +8,8 @@ from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
 from yowsup.layers.protocol_groups.protocolentities import *
 from yowsup.layers.protocol_messages.protocolentities import *
 from yowsup.layers.protocol_profiles.protocolentities import *
+from yowsup.layers.protocol_presence.protocolentities import *
+from yowsup.layers.protocol_contacts.protocolentities import *
 
 
 class Interfacer(QThread, YowInterfaceLayer):
@@ -15,6 +17,7 @@ class Interfacer(QThread, YowInterfaceLayer):
     # -------------------------- PY QT Signals -------------------------------------------- #
     message_received_signal = pyqtSignal()
     success_connection_signal = pyqtSignal()
+    presence_update_signal = pyqtSignal()
 
     # -------------------------- Class Constructor -------------------------------------------- #
     def __init__(self):
@@ -53,6 +56,11 @@ class Interfacer(QThread, YowInterfaceLayer):
         print(entity)
 
     def on_text_message(self, entity):
+        if entity.isGroupMessage() == 0 and self.services.check_contact_id(entity.getFrom()):
+            self.presence_subscribe(entity.getFrom())
+        elif entity.isGroupMessage() == 1 and self.services.check_contact_id(entity.getParticipant()):
+            self.presence_subscribe(entity.getParticipant())
+
         self.services.add_message([
             entity.getId(),
             entity.getBody(),
@@ -85,16 +93,19 @@ class Interfacer(QThread, YowInterfaceLayer):
         entity = GetPictureIqProtocolEntity(jid, preview=True)
         self._sendIq(entity, self.contact_image_result)
 
-    def contact_image_result(self, success_entity, original_entity):
-        success_entity.writeToFile('../tmp/images/test.jpg')
-        pass
+    @staticmethod
+    def contact_image_result(success_entity, original_entity):
+        success_entity.writeToFile("../tmp/images/%s_%s.jpg" % (
+            original_entity.getTo(),
+            "preview" if success_entity.isPreview() else "full")
+        )
 
     def groups_list(self):
         def on_success(success_entity, original_entity):
             for group in success_entity.getGroups():
                 self.services.update_contact_id(group.getId()+"@g.us", group.getSubject())
+                # self.contact_picture(group.getId+"@g.us")
             self.success_connection_signal.emit()
-            self.contact_picture('919597584357@s.whatsapp.net')
 
         def on_error(error_entity, original_entity):
             print(error_entity)
@@ -119,10 +130,41 @@ class Interfacer(QThread, YowInterfaceLayer):
         """
         print(entity)
 
+    def set_presence_available(self):
+        entity = AvailablePresenceProtocolEntity()
+        self.toLower(entity)
+
+    def presence_name(self, name):
+        entity = PresenceProtocolEntity(name=name)
+        self.toLower(entity)
+
+    def presence_unavailable(self):
+        entity = UnavailablePresenceProtocolEntity()
+        self.toLower(entity)
+
+    def presence_subscribe(self, jid):
+        entity = SubscribePresenceProtocolEntity(jid)
+        self.toLower(entity)
+
+    def contact_lastseen(self, jid):
+        def onSuccess(resultIqEntity, originalIqEntity):
+            print("%s lastseen %s seconds ago" % (resultIqEntity.getFrom(), resultIqEntity.getSeconds()))
+
+        def onError(errorIqEntity, originalIqEntity):
+            print("Error getting lastseen information for %s" % originalIqEntity.getTo())
+
+        entity = LastseenIqProtocolEntity(jid)
+        self._sendIq(entity, onSuccess, onError)
+
+    def contacts_sync(self, contacts):
+        entity = GetSyncIqProtocolEntity(contacts.split(','))
+        self.toLower(entity)
+
     # -------------------------- Callback functions for each functions -------------------------------------------- #
     @ProtocolEntityCallback("success")
     def on_success(self, entity):
         print("Success Connected")
+        self.set_presence_available()
         self.groups_list()
 
     @ProtocolEntityCallback("ack")
@@ -138,7 +180,7 @@ class Interfacer(QThread, YowInterfaceLayer):
 
     @ProtocolEntityCallback("iq")
     def on_iq(self, entity):
-        pass
+        print(entity)
 
     @ProtocolEntityCallback("message")
     def on_message(self, entity):
@@ -156,12 +198,14 @@ class Interfacer(QThread, YowInterfaceLayer):
 
     @ProtocolEntityCallback("notification")
     def on_notification(self, notification):
-        """
         notification_data = notification.__str__()
-        if notificationData:
-            print(notificationData)
+        if notification_data:
+            print(notification_data)
         else:
             print("From :%s, Type: %s" % (self.jidToAlias(notification.getFrom()), notification.getType()))
-        if self.sendReceipts:
-            self.toLower(notification.ack()) """
-        pass
+        self.toLower(notification.ack())
+
+    @ProtocolEntityCallback("presence")
+    def on_presence_update(self, entity):
+        self.services.updatePresence(entity.getFrom(), entity.getType(), entity.getLast())
+        self.presence_update_signal.emit()

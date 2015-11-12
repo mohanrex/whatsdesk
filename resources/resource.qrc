@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="status_icon">
+    <file alias="user_offline.png">images/Status-user-invisible-icon.png</file>
+    <file alias="user_online.png">images/Status-user-online-icon.png</file>
+  </qresource>
+</RCC>

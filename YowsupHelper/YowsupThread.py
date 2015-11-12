@@ -5,22 +5,10 @@ from PyQt5.QtCore import QThread
 import time
 import logging
 
-from yowsup.stacks import YowStack
+from yowsup.stacks import YowStackBuilder
 from yowsup.layers import YowLayerEvent
-from yowsup.layers.protocol_groups import YowGroupsProtocolLayer
-from yowsup.layers.auth import YowCryptLayer, YowAuthenticationProtocolLayer, AuthError
-from yowsup.layers.coder import YowCoderLayer
+from yowsup.layers.auth import AuthError
 from yowsup.layers.network import YowNetworkLayer
-from yowsup.layers.protocol_messages import YowMessagesProtocolLayer
-from yowsup.layers.protocol_media import YowMediaProtocolLayer
-from yowsup.layers.stanzaregulator import YowStanzaRegulator
-from yowsup.layers.protocol_receipts import YowReceiptProtocolLayer
-from yowsup.layers.protocol_acks import YowAckProtocolLayer
-from yowsup.layers.logger import YowLoggerLayer
-from yowsup.layers.protocol_iq import YowIqProtocolLayer
-from yowsup.layers.protocol_calls import YowCallsProtocolLayer
-from yowsup.layers.axolotl import YowAxolotlLayer
-from yowsup.layers.protocol_profiles import YowProfilesProtocolLayer
 
 from YowsupHelper.Interfacer import Interfacer
 
@@ -32,27 +20,13 @@ class YowsupThread(QThread):
         self.interface = Interfacer()
         if debug:
             logging.basicConfig(level=logging.DEBUG)
-        layers = (
-            self.interface,
-            (
-                YowAuthenticationProtocolLayer,
-                YowMessagesProtocolLayer,
-                YowReceiptProtocolLayer,
-                YowAckProtocolLayer,
-                YowMediaProtocolLayer,
-                YowIqProtocolLayer,
-                YowCallsProtocolLayer,
-                YowGroupsProtocolLayer,
-                YowProfilesProtocolLayer
-            ),
-            YowAxolotlLayer,
-            YowLoggerLayer,
-            YowCoderLayer,
-            YowCryptLayer,
-            YowStanzaRegulator,
-            YowNetworkLayer
-        )
-        self.stack = YowStack(layers)
+
+        stack_builder = YowStackBuilder()
+
+        self.stack = stack_builder\
+            .pushDefaultLayers(True)\
+            .push(self.interface)\
+            .build()
         self.stack.setCredentials([phone, password])
 
     def __del__(self):
